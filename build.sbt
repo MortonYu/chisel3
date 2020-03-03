@@ -38,6 +38,18 @@ lazy val commonSettings = Seq (
   organization := "edu.berkeley.cs",
   version := "3.3-SNAPSHOT",
   autoAPIMappings := true,
+  apiMappings ++= {
+    Option(System.getProperty("sun.boot.class.path")).flatMap { classPath =>
+      classPath.split(java.io.File.pathSeparator).find(_.endsWith(java.io.File.separator + "rt.jar"))
+    }.map { jarPath =>
+      Map(
+        file(jarPath) -> url("https://docs.oracle.com/javase/8/docs/api")
+      )
+    }.getOrElse {
+      streams.value.log.warn("Failed to add bootstrap class path of Java to apiMappings")
+      Map.empty[File,URL]
+    }
+  },
   scalaVersion := "2.12.10",
   crossScalaVersions := Seq("2.12.10", "2.11.12"),
   scalacOptions := Seq("-deprecation", "-feature") ++ scalacOptionsVersion(scalaVersion.value),
